@@ -1,0 +1,35 @@
+name: Rehearse release
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install uv==0.13.9
+      - name: Run documented quick start
+        run: sh demo
+      - name: Verify PostgreSQL causal relationships and cleanup
+        run: uv run --locked --extra embedded python -m unittest discover -s tests -v
+      - name: Inspect the offline report in Chrome
+        run: |
+          python -m pip install playwright
+          CHROME_BIN="$(command -v google-chrome)" python tests/browser_check.py out/report.html
+      - name: Gate a supplied migration
+        run: |
+          uv run --locked --extra embedded pg-rollout-witness run \
+            --migration examples/migration.sql --fixture examples/fixture.sql \
+            --workload examples/workload.json --out out/custom
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rollout-evidence
+          path: out/
+          if-no-files-found: warn
