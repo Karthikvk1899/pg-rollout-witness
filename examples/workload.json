@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "requests": [
+    {"name":"find-order","stage":"before","client":"old","sql":"SELECT id FROM orders WHERE id=%s","params":[17],"expect":17},
+    {"name":"create-order","stage":"after","client":"old","sql":"INSERT INTO orders(id,reference) VALUES(%s,%s) RETURNING id","params":[1001,"synthetic"],"expect":1001,"budget_ms":1000},
+    {"name":"read-default","stage":"after","client":"new","sql":"SELECT priority FROM orders WHERE id=%s","params":[1001],"expect":0}
+  ]
+}
