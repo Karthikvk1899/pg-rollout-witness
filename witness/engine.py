@@ -30,7 +30,8 @@ def statement(events, conn, kind, name, sql, *, expect=..., budget=None, params=
         cur = conn.execute(sql, params)
         if expect is not ...:
             row = cur.fetchone() if cur.description else None
-            matches = row == (expect,)
+            # Python considers True == 1, but a JSON workload distinguishes them.
+            matches = row == (expect,) and isinstance(row[0], bool) == isinstance(expect, bool)
     except psycopg.Error as exc:
         if not exc.sqlstate:
             raise
