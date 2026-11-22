@@ -1,0 +1,483 @@
+{
+  "schema_version": 1,
+  "environment": {
+    "seed": 41,
+    "fixture_sha256": "65904b444f420bc03dfe045fbf183a4927218f35c542930a88c3d89a0ad9f176",
+    "workload_version": "builtin/1",
+    "workload_sha256": "48a410cd78d431c1e3167d2baefd1691b427e7894317076eb5b5b06b8d0dc6a0",
+    "platform": "Linux 6.18.57 x86_64",
+    "python": "3.12.14",
+    "runner": "0.1.0",
+    "statement_timeout_ms": 20000,
+    "observation_timeout_s": 5.0,
+    "index_writer_budget_ms": 1200,
+    "started_at": "2026-11-22T05:24:15.875338+00:00"
+  },
+  "trials": [
+    {
+      "name": "regular",
+      "events": [
+        {
+          "kind": "catalog",
+          "name": "before",
+          "exists": false,
+          "ready": null,
+          "valid": null,
+          "unique": null
+        },
+        {
+          "kind": "barrier",
+          "name": "old transaction wrote row 1",
+          "pid": 68
+        },
+        {
+          "kind": "wait",
+          "name": "captured blocker",
+          "pid": 69,
+          "blockers": [
+            68
+          ],
+          "wait_type": "Lock",
+          "wait_event": "relation",
+          "phase": null,
+          "modes": [
+            "ShareLock"
+          ]
+        },
+        {
+          "kind": "wait",
+          "name": "captured blocker",
+          "pid": 70,
+          "blockers": [
+            69
+          ],
+          "wait_type": "Lock",
+          "wait_event": "relation",
+          "phase": null,
+          "modes": [
+            "RowExclusiveLock"
+          ]
+        },
+        {
+          "kind": "migration",
+          "name": "build unique index",
+          "pid": 69,
+          "sqlstate": null,
+          "digest": "d5b58858f94421f0ac1f047909d8562812559a4ca33e0ecff9b543e47baf0cd9",
+          "elapsed_ms": 1207.353,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": null
+        },
+        {
+          "kind": "request",
+          "name": "old.write-row-2",
+          "pid": 70,
+          "sqlstate": null,
+          "digest": "1181576b29d85103f4a26d1f597f05badf52e7a914e977edb28be94d3feda11e",
+          "elapsed_ms": 1205.165,
+          "budget_ms": 1200,
+          "over_budget": true,
+          "matched": true
+        },
+        {
+          "kind": "catalog",
+          "name": "after completion",
+          "exists": true,
+          "ready": true,
+          "valid": true,
+          "unique": true
+        },
+        {
+          "kind": "request",
+          "name": "old.write-after-build",
+          "pid": 70,
+          "sqlstate": null,
+          "digest": "1181576b29d85103f4a26d1f597f05badf52e7a914e977edb28be94d3feda11e",
+          "elapsed_ms": 0.252,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": true
+        },
+        {
+          "kind": "request",
+          "name": "new.lookup-email",
+          "pid": 70,
+          "sqlstate": null,
+          "digest": "cec3d8112ab50bdc9c42069ae434982f3bb6a4319f39d9f36d29719a1fcf7ed8",
+          "elapsed_ms": 0.378,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": true
+        },
+        {
+          "kind": "control",
+          "name": "duplicate email rejected",
+          "pid": 70,
+          "sqlstate": "23505",
+          "digest": "f1f0046c68157188ba2fcce3750571b74864af20dde48a53389fb2a914bca157",
+          "elapsed_ms": 0.337,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": null
+        }
+      ],
+      "postgres": "16.2",
+      "verdict": "budget_violation",
+      "decision": "Review the affected request against its declared service budget before approving."
+    },
+    {
+      "name": "concurrent",
+      "events": [
+        {
+          "kind": "catalog",
+          "name": "before",
+          "exists": false,
+          "ready": null,
+          "valid": null,
+          "unique": null
+        },
+        {
+          "kind": "barrier",
+          "name": "old transaction wrote row 1",
+          "pid": 99
+        },
+        {
+          "kind": "wait",
+          "name": "captured blocker",
+          "pid": 100,
+          "blockers": [
+            99
+          ],
+          "wait_type": "Lock",
+          "wait_event": "virtualxid",
+          "phase": "waiting for writers before build",
+          "modes": [
+            "ShareLock"
+          ]
+        },
+        {
+          "kind": "request",
+          "name": "old.write-row-2",
+          "pid": 101,
+          "sqlstate": null,
+          "digest": "1181576b29d85103f4a26d1f597f05badf52e7a914e977edb28be94d3feda11e",
+          "elapsed_ms": 0.73,
+          "budget_ms": 1200,
+          "over_budget": false,
+          "matched": true
+        },
+        {
+          "kind": "migration",
+          "name": "build unique index",
+          "pid": 100,
+          "sqlstate": null,
+          "digest": "b3d44d4a58c0fa19647d0153a19fdad15833c238c8357ff72aaba3c752b1af1e",
+          "elapsed_ms": 4.59,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": null
+        },
+        {
+          "kind": "catalog",
+          "name": "after completion",
+          "exists": true,
+          "ready": true,
+          "valid": true,
+          "unique": true
+        },
+        {
+          "kind": "request",
+          "name": "old.write-after-build",
+          "pid": 101,
+          "sqlstate": null,
+          "digest": "1181576b29d85103f4a26d1f597f05badf52e7a914e977edb28be94d3feda11e",
+          "elapsed_ms": 0.523,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": true
+        },
+        {
+          "kind": "request",
+          "name": "new.lookup-email",
+          "pid": 101,
+          "sqlstate": null,
+          "digest": "cec3d8112ab50bdc9c42069ae434982f3bb6a4319f39d9f36d29719a1fcf7ed8",
+          "elapsed_ms": 0.352,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": true
+        },
+        {
+          "kind": "control",
+          "name": "duplicate email rejected",
+          "pid": 101,
+          "sqlstate": "23505",
+          "digest": "f1f0046c68157188ba2fcce3750571b74864af20dde48a53389fb2a914bca157",
+          "elapsed_ms": 0.304,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": null
+        }
+      ],
+      "postgres": "16.2",
+      "verdict": "pass",
+      "decision": "The declared requests completed within their budgets and matched their assertions."
+    },
+    {
+      "name": "interrupted",
+      "events": [
+        {
+          "kind": "catalog",
+          "name": "before",
+          "exists": false,
+          "ready": null,
+          "valid": null,
+          "unique": null
+        },
+        {
+          "kind": "barrier",
+          "name": "old transaction wrote row 1",
+          "pid": 130
+        },
+        {
+          "kind": "wait",
+          "name": "captured blocker",
+          "pid": 131,
+          "blockers": [
+            130
+          ],
+          "wait_type": "Lock",
+          "wait_event": "virtualxid",
+          "phase": "waiting for writers before build",
+          "modes": [
+            "ShareLock"
+          ]
+        },
+        {
+          "kind": "migration",
+          "name": "build unique index",
+          "pid": 131,
+          "sqlstate": "57014",
+          "digest": "b3d44d4a58c0fa19647d0153a19fdad15833c238c8357ff72aaba3c752b1af1e",
+          "elapsed_ms": 2.524,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": null
+        },
+        {
+          "kind": "catalog",
+          "name": "after cancellation",
+          "exists": true,
+          "ready": false,
+          "valid": false,
+          "unique": true
+        },
+        {
+          "kind": "migration",
+          "name": "remove invalid index",
+          "pid": 131,
+          "sqlstate": null,
+          "digest": "0841615320c42f1bc66f69ce157169124d2eae883a538416c55a50ea2f26b9f8",
+          "elapsed_ms": 0.524,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": null
+        },
+        {
+          "kind": "catalog",
+          "name": "after removal",
+          "exists": false,
+          "ready": null,
+          "valid": null,
+          "unique": null
+        },
+        {
+          "kind": "migration",
+          "name": "retry identical migration",
+          "pid": 131,
+          "sqlstate": null,
+          "digest": "b3d44d4a58c0fa19647d0153a19fdad15833c238c8357ff72aaba3c752b1af1e",
+          "elapsed_ms": 1.286,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": null
+        },
+        {
+          "kind": "catalog",
+          "name": "after completion",
+          "exists": true,
+          "ready": true,
+          "valid": true,
+          "unique": true
+        },
+        {
+          "kind": "request",
+          "name": "old.write-after-build",
+          "pid": 132,
+          "sqlstate": null,
+          "digest": "1181576b29d85103f4a26d1f597f05badf52e7a914e977edb28be94d3feda11e",
+          "elapsed_ms": 0.437,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": true
+        },
+        {
+          "kind": "request",
+          "name": "new.lookup-email",
+          "pid": 132,
+          "sqlstate": null,
+          "digest": "cec3d8112ab50bdc9c42069ae434982f3bb6a4319f39d9f36d29719a1fcf7ed8",
+          "elapsed_ms": 0.412,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": true
+        },
+        {
+          "kind": "control",
+          "name": "duplicate email rejected",
+          "pid": 132,
+          "sqlstate": "23505",
+          "digest": "f1f0046c68157188ba2fcce3750571b74864af20dde48a53389fb2a914bca157",
+          "elapsed_ms": 0.376,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": null
+        }
+      ],
+      "postgres": "16.2",
+      "verdict": "recovered",
+      "decision": "Cancellation left an invalid index. Removal and retry restored uniqueness and the declared requests."
+    },
+    {
+      "name": "rename",
+      "events": [
+        {
+          "kind": "request",
+          "name": "baseline.old-read",
+          "pid": 161,
+          "sqlstate": null,
+          "digest": "d05a250cfae0382c64a2ed2750d30d45b843f1555b51b834a0817c5f04526ccc",
+          "elapsed_ms": 0.763,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": true
+        },
+        {
+          "kind": "migration",
+          "name": "rename immediately",
+          "pid": 160,
+          "sqlstate": null,
+          "digest": "9144c9442ebecff23fc9dff57e853d9ae2f6a9e966568b23f9d752b7285eadc3",
+          "elapsed_ms": 0.319,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": null
+        },
+        {
+          "kind": "request",
+          "name": "mixed.old-read",
+          "pid": 161,
+          "sqlstate": "42703",
+          "digest": "d05a250cfae0382c64a2ed2750d30d45b843f1555b51b834a0817c5f04526ccc",
+          "elapsed_ms": 0.211,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": null
+        },
+        {
+          "kind": "request",
+          "name": "mixed.new-read",
+          "pid": 162,
+          "sqlstate": null,
+          "digest": "212ffdd8ed377a51d533c260194b07cdf2db5de946f45dafa1c9e7b0c741005d",
+          "elapsed_ms": 0.387,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": true
+        }
+      ],
+      "postgres": "16.2",
+      "verdict": "application_failure",
+      "decision": "Hold this rollout while the affected client is serving traffic."
+    },
+    {
+      "name": "expand-contract",
+      "events": [
+        {
+          "kind": "request",
+          "name": "baseline.old-read",
+          "pid": 190,
+          "sqlstate": null,
+          "digest": "d05a250cfae0382c64a2ed2750d30d45b843f1555b51b834a0817c5f04526ccc",
+          "elapsed_ms": 0.758,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": true
+        },
+        {
+          "kind": "migration",
+          "name": "expand and backfill",
+          "pid": 189,
+          "sqlstate": null,
+          "digest": "62e60b4003601614e9c45fe74bf1bce4a986afa5be48729b377c68a04cecf488",
+          "elapsed_ms": 5.384,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": null
+        },
+        {
+          "kind": "request",
+          "name": "mixed.old-read",
+          "pid": 190,
+          "sqlstate": null,
+          "digest": "d05a250cfae0382c64a2ed2750d30d45b843f1555b51b834a0817c5f04526ccc",
+          "elapsed_ms": 0.309,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": true
+        },
+        {
+          "kind": "request",
+          "name": "mixed.new-read",
+          "pid": 191,
+          "sqlstate": null,
+          "digest": "212ffdd8ed377a51d533c260194b07cdf2db5de946f45dafa1c9e7b0c741005d",
+          "elapsed_ms": 0.603,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": true
+        },
+        {
+          "kind": "stage",
+          "name": "old read-only client retired"
+        },
+        {
+          "kind": "migration",
+          "name": "contract after retirement",
+          "pid": 189,
+          "sqlstate": null,
+          "digest": "6ad5b8aae901ede9741b217d145ffe1086ef7599d568e046d8a407b84650d6a5",
+          "elapsed_ms": 0.385,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": null
+        },
+        {
+          "kind": "request",
+          "name": "new-only.read",
+          "pid": 191,
+          "sqlstate": null,
+          "digest": "212ffdd8ed377a51d533c260194b07cdf2db5de946f45dafa1c9e7b0c741005d",
+          "elapsed_ms": 0.188,
+          "budget_ms": null,
+          "over_budget": false,
+          "matched": true
+        }
+      ],
+      "postgres": "16.2",
+      "verdict": "pass",
+      "decision": "The declared requests completed within their budgets and matched their assertions."
+    }
+  ]
+}
