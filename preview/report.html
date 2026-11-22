@@ -1,0 +1,401 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>PostgreSQL rollout evidence</title><style>
+:root{font:16px/1.5 system-ui;color:#16292e;background:#f6f8f7}body{max-width:64rem;margin:auto;padding:2rem}
+h1{font-size:clamp(2rem,6vw,4rem);line-height:1}h2{margin-top:2.5rem}a{color:#00605b}article,details{padding:.8rem 1rem;background:white;margin:.55rem 0;border-left:3px solid #72988f}
+pre{white-space:pre-wrap;overflow-wrap:anywhere}summary{cursor:pointer}strong{color:#653822}:target{outline:3px solid #d98630}
+</style><main><h1>PostgreSQL rollout evidence</h1><article><b>regular</b> · <strong>budget_violation</strong><p>Review the affected request against its declared service budget before approving.</p><a href="#e-0-2">captured blocker · wait</a><br><a href="#e-0-3">captured blocker · wait</a><br><a href="#e-0-5">old.write-row-2 · request</a><br><a href="#e-0-9">duplicate email rejected · 23505</a><br><a href="#trial-0">Inspect all events</a></article><article><b>concurrent</b> · <strong>pass</strong><p>The declared requests completed within their budgets and matched their assertions.</p><a href="#e-1-2">captured blocker · wait</a><br><a href="#e-1-8">duplicate email rejected · 23505</a><br><a href="#trial-1">Inspect all events</a></article><article><b>interrupted</b> · <strong>recovered</strong><p>Cancellation left an invalid index. Removal and retry restored uniqueness and the declared requests.</p><a href="#e-2-2">captured blocker · wait</a><br><a href="#e-2-3">build unique index · 57014</a><br><a href="#e-2-11">duplicate email rejected · 23505</a><br><a href="#trial-2">Inspect all events</a></article><article><b>rename</b> · <strong>application_failure</strong><p>Hold this rollout while the affected client is serving traffic.</p><a href="#e-3-2">mixed.old-read · 42703</a><br><a href="#trial-3">Inspect all events</a></article><article><b>expand-contract</b> · <strong>pass</strong><p>The declared requests completed within their budgets and matched their assertions.</p><a href="#trial-4">Inspect all events</a></article><section id="trial-0"><h2>regular · PostgreSQL 16.2</h2><details id="e-0-0"><summary>catalog · before</summary><pre>{
+  &quot;kind&quot;: &quot;catalog&quot;,
+  &quot;name&quot;: &quot;before&quot;,
+  &quot;exists&quot;: false,
+  &quot;ready&quot;: null,
+  &quot;valid&quot;: null,
+  &quot;unique&quot;: null
+}</pre></details><details id="e-0-1"><summary>barrier · old transaction wrote row 1</summary><pre>{
+  &quot;kind&quot;: &quot;barrier&quot;,
+  &quot;name&quot;: &quot;old transaction wrote row 1&quot;,
+  &quot;pid&quot;: 68
+}</pre></details><details id="e-0-2"><summary>wait · captured blocker</summary><pre>{
+  &quot;kind&quot;: &quot;wait&quot;,
+  &quot;name&quot;: &quot;captured blocker&quot;,
+  &quot;pid&quot;: 69,
+  &quot;blockers&quot;: [
+    68
+  ],
+  &quot;wait_type&quot;: &quot;Lock&quot;,
+  &quot;wait_event&quot;: &quot;relation&quot;,
+  &quot;phase&quot;: null,
+  &quot;modes&quot;: [
+    &quot;ShareLock&quot;
+  ]
+}</pre></details><details id="e-0-3"><summary>wait · captured blocker</summary><pre>{
+  &quot;kind&quot;: &quot;wait&quot;,
+  &quot;name&quot;: &quot;captured blocker&quot;,
+  &quot;pid&quot;: 70,
+  &quot;blockers&quot;: [
+    69
+  ],
+  &quot;wait_type&quot;: &quot;Lock&quot;,
+  &quot;wait_event&quot;: &quot;relation&quot;,
+  &quot;phase&quot;: null,
+  &quot;modes&quot;: [
+    &quot;RowExclusiveLock&quot;
+  ]
+}</pre></details><details id="e-0-4"><summary>migration · build unique index</summary><pre>{
+  &quot;kind&quot;: &quot;migration&quot;,
+  &quot;name&quot;: &quot;build unique index&quot;,
+  &quot;pid&quot;: 69,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;d5b58858f94421f0ac1f047909d8562812559a4ca33e0ecff9b543e47baf0cd9&quot;,
+  &quot;elapsed_ms&quot;: 1207.353,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: null
+}</pre><p><a href="#e-0-2">Observed wait for backend 69 · blockers [68]</a></p></details><details id="e-0-5"><summary>request · old.write-row-2</summary><pre>{
+  &quot;kind&quot;: &quot;request&quot;,
+  &quot;name&quot;: &quot;old.write-row-2&quot;,
+  &quot;pid&quot;: 70,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;1181576b29d85103f4a26d1f597f05badf52e7a914e977edb28be94d3feda11e&quot;,
+  &quot;elapsed_ms&quot;: 1205.165,
+  &quot;budget_ms&quot;: 1200,
+  &quot;over_budget&quot;: true,
+  &quot;matched&quot;: true
+}</pre><p><a href="#e-0-3">Observed wait for backend 70 · blockers [69]</a></p></details><details id="e-0-6"><summary>catalog · after completion</summary><pre>{
+  &quot;kind&quot;: &quot;catalog&quot;,
+  &quot;name&quot;: &quot;after completion&quot;,
+  &quot;exists&quot;: true,
+  &quot;ready&quot;: true,
+  &quot;valid&quot;: true,
+  &quot;unique&quot;: true
+}</pre></details><details id="e-0-7"><summary>request · old.write-after-build</summary><pre>{
+  &quot;kind&quot;: &quot;request&quot;,
+  &quot;name&quot;: &quot;old.write-after-build&quot;,
+  &quot;pid&quot;: 70,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;1181576b29d85103f4a26d1f597f05badf52e7a914e977edb28be94d3feda11e&quot;,
+  &quot;elapsed_ms&quot;: 0.252,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: true
+}</pre></details><details id="e-0-8"><summary>request · new.lookup-email</summary><pre>{
+  &quot;kind&quot;: &quot;request&quot;,
+  &quot;name&quot;: &quot;new.lookup-email&quot;,
+  &quot;pid&quot;: 70,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;cec3d8112ab50bdc9c42069ae434982f3bb6a4319f39d9f36d29719a1fcf7ed8&quot;,
+  &quot;elapsed_ms&quot;: 0.378,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: true
+}</pre></details><details id="e-0-9"><summary>control · duplicate email rejected</summary><pre>{
+  &quot;kind&quot;: &quot;control&quot;,
+  &quot;name&quot;: &quot;duplicate email rejected&quot;,
+  &quot;pid&quot;: 70,
+  &quot;sqlstate&quot;: &quot;23505&quot;,
+  &quot;digest&quot;: &quot;f1f0046c68157188ba2fcce3750571b74864af20dde48a53389fb2a914bca157&quot;,
+  &quot;elapsed_ms&quot;: 0.337,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: null
+}</pre></details></section><section id="trial-1"><h2>concurrent · PostgreSQL 16.2</h2><details id="e-1-0"><summary>catalog · before</summary><pre>{
+  &quot;kind&quot;: &quot;catalog&quot;,
+  &quot;name&quot;: &quot;before&quot;,
+  &quot;exists&quot;: false,
+  &quot;ready&quot;: null,
+  &quot;valid&quot;: null,
+  &quot;unique&quot;: null
+}</pre></details><details id="e-1-1"><summary>barrier · old transaction wrote row 1</summary><pre>{
+  &quot;kind&quot;: &quot;barrier&quot;,
+  &quot;name&quot;: &quot;old transaction wrote row 1&quot;,
+  &quot;pid&quot;: 99
+}</pre></details><details id="e-1-2"><summary>wait · captured blocker</summary><pre>{
+  &quot;kind&quot;: &quot;wait&quot;,
+  &quot;name&quot;: &quot;captured blocker&quot;,
+  &quot;pid&quot;: 100,
+  &quot;blockers&quot;: [
+    99
+  ],
+  &quot;wait_type&quot;: &quot;Lock&quot;,
+  &quot;wait_event&quot;: &quot;virtualxid&quot;,
+  &quot;phase&quot;: &quot;waiting for writers before build&quot;,
+  &quot;modes&quot;: [
+    &quot;ShareLock&quot;
+  ]
+}</pre></details><details id="e-1-3"><summary>request · old.write-row-2</summary><pre>{
+  &quot;kind&quot;: &quot;request&quot;,
+  &quot;name&quot;: &quot;old.write-row-2&quot;,
+  &quot;pid&quot;: 101,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;1181576b29d85103f4a26d1f597f05badf52e7a914e977edb28be94d3feda11e&quot;,
+  &quot;elapsed_ms&quot;: 0.73,
+  &quot;budget_ms&quot;: 1200,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: true
+}</pre></details><details id="e-1-4"><summary>migration · build unique index</summary><pre>{
+  &quot;kind&quot;: &quot;migration&quot;,
+  &quot;name&quot;: &quot;build unique index&quot;,
+  &quot;pid&quot;: 100,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;b3d44d4a58c0fa19647d0153a19fdad15833c238c8357ff72aaba3c752b1af1e&quot;,
+  &quot;elapsed_ms&quot;: 4.59,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: null
+}</pre><p><a href="#e-1-2">Observed wait for backend 100 · blockers [99]</a></p></details><details id="e-1-5"><summary>catalog · after completion</summary><pre>{
+  &quot;kind&quot;: &quot;catalog&quot;,
+  &quot;name&quot;: &quot;after completion&quot;,
+  &quot;exists&quot;: true,
+  &quot;ready&quot;: true,
+  &quot;valid&quot;: true,
+  &quot;unique&quot;: true
+}</pre></details><details id="e-1-6"><summary>request · old.write-after-build</summary><pre>{
+  &quot;kind&quot;: &quot;request&quot;,
+  &quot;name&quot;: &quot;old.write-after-build&quot;,
+  &quot;pid&quot;: 101,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;1181576b29d85103f4a26d1f597f05badf52e7a914e977edb28be94d3feda11e&quot;,
+  &quot;elapsed_ms&quot;: 0.523,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: true
+}</pre></details><details id="e-1-7"><summary>request · new.lookup-email</summary><pre>{
+  &quot;kind&quot;: &quot;request&quot;,
+  &quot;name&quot;: &quot;new.lookup-email&quot;,
+  &quot;pid&quot;: 101,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;cec3d8112ab50bdc9c42069ae434982f3bb6a4319f39d9f36d29719a1fcf7ed8&quot;,
+  &quot;elapsed_ms&quot;: 0.352,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: true
+}</pre></details><details id="e-1-8"><summary>control · duplicate email rejected</summary><pre>{
+  &quot;kind&quot;: &quot;control&quot;,
+  &quot;name&quot;: &quot;duplicate email rejected&quot;,
+  &quot;pid&quot;: 101,
+  &quot;sqlstate&quot;: &quot;23505&quot;,
+  &quot;digest&quot;: &quot;f1f0046c68157188ba2fcce3750571b74864af20dde48a53389fb2a914bca157&quot;,
+  &quot;elapsed_ms&quot;: 0.304,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: null
+}</pre></details></section><section id="trial-2"><h2>interrupted · PostgreSQL 16.2</h2><details id="e-2-0"><summary>catalog · before</summary><pre>{
+  &quot;kind&quot;: &quot;catalog&quot;,
+  &quot;name&quot;: &quot;before&quot;,
+  &quot;exists&quot;: false,
+  &quot;ready&quot;: null,
+  &quot;valid&quot;: null,
+  &quot;unique&quot;: null
+}</pre></details><details id="e-2-1"><summary>barrier · old transaction wrote row 1</summary><pre>{
+  &quot;kind&quot;: &quot;barrier&quot;,
+  &quot;name&quot;: &quot;old transaction wrote row 1&quot;,
+  &quot;pid&quot;: 130
+}</pre></details><details id="e-2-2"><summary>wait · captured blocker</summary><pre>{
+  &quot;kind&quot;: &quot;wait&quot;,
+  &quot;name&quot;: &quot;captured blocker&quot;,
+  &quot;pid&quot;: 131,
+  &quot;blockers&quot;: [
+    130
+  ],
+  &quot;wait_type&quot;: &quot;Lock&quot;,
+  &quot;wait_event&quot;: &quot;virtualxid&quot;,
+  &quot;phase&quot;: &quot;waiting for writers before build&quot;,
+  &quot;modes&quot;: [
+    &quot;ShareLock&quot;
+  ]
+}</pre></details><details id="e-2-3"><summary>migration · build unique index</summary><pre>{
+  &quot;kind&quot;: &quot;migration&quot;,
+  &quot;name&quot;: &quot;build unique index&quot;,
+  &quot;pid&quot;: 131,
+  &quot;sqlstate&quot;: &quot;57014&quot;,
+  &quot;digest&quot;: &quot;b3d44d4a58c0fa19647d0153a19fdad15833c238c8357ff72aaba3c752b1af1e&quot;,
+  &quot;elapsed_ms&quot;: 2.524,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: null
+}</pre><p><a href="#e-2-2">Observed wait for backend 131 · blockers [130]</a></p></details><details id="e-2-4"><summary>catalog · after cancellation</summary><pre>{
+  &quot;kind&quot;: &quot;catalog&quot;,
+  &quot;name&quot;: &quot;after cancellation&quot;,
+  &quot;exists&quot;: true,
+  &quot;ready&quot;: false,
+  &quot;valid&quot;: false,
+  &quot;unique&quot;: true
+}</pre></details><details id="e-2-5"><summary>migration · remove invalid index</summary><pre>{
+  &quot;kind&quot;: &quot;migration&quot;,
+  &quot;name&quot;: &quot;remove invalid index&quot;,
+  &quot;pid&quot;: 131,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;0841615320c42f1bc66f69ce157169124d2eae883a538416c55a50ea2f26b9f8&quot;,
+  &quot;elapsed_ms&quot;: 0.524,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: null
+}</pre></details><details id="e-2-6"><summary>catalog · after removal</summary><pre>{
+  &quot;kind&quot;: &quot;catalog&quot;,
+  &quot;name&quot;: &quot;after removal&quot;,
+  &quot;exists&quot;: false,
+  &quot;ready&quot;: null,
+  &quot;valid&quot;: null,
+  &quot;unique&quot;: null
+}</pre></details><details id="e-2-7"><summary>migration · retry identical migration</summary><pre>{
+  &quot;kind&quot;: &quot;migration&quot;,
+  &quot;name&quot;: &quot;retry identical migration&quot;,
+  &quot;pid&quot;: 131,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;b3d44d4a58c0fa19647d0153a19fdad15833c238c8357ff72aaba3c752b1af1e&quot;,
+  &quot;elapsed_ms&quot;: 1.286,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: null
+}</pre></details><details id="e-2-8"><summary>catalog · after completion</summary><pre>{
+  &quot;kind&quot;: &quot;catalog&quot;,
+  &quot;name&quot;: &quot;after completion&quot;,
+  &quot;exists&quot;: true,
+  &quot;ready&quot;: true,
+  &quot;valid&quot;: true,
+  &quot;unique&quot;: true
+}</pre></details><details id="e-2-9"><summary>request · old.write-after-build</summary><pre>{
+  &quot;kind&quot;: &quot;request&quot;,
+  &quot;name&quot;: &quot;old.write-after-build&quot;,
+  &quot;pid&quot;: 132,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;1181576b29d85103f4a26d1f597f05badf52e7a914e977edb28be94d3feda11e&quot;,
+  &quot;elapsed_ms&quot;: 0.437,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: true
+}</pre></details><details id="e-2-10"><summary>request · new.lookup-email</summary><pre>{
+  &quot;kind&quot;: &quot;request&quot;,
+  &quot;name&quot;: &quot;new.lookup-email&quot;,
+  &quot;pid&quot;: 132,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;cec3d8112ab50bdc9c42069ae434982f3bb6a4319f39d9f36d29719a1fcf7ed8&quot;,
+  &quot;elapsed_ms&quot;: 0.412,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: true
+}</pre></details><details id="e-2-11"><summary>control · duplicate email rejected</summary><pre>{
+  &quot;kind&quot;: &quot;control&quot;,
+  &quot;name&quot;: &quot;duplicate email rejected&quot;,
+  &quot;pid&quot;: 132,
+  &quot;sqlstate&quot;: &quot;23505&quot;,
+  &quot;digest&quot;: &quot;f1f0046c68157188ba2fcce3750571b74864af20dde48a53389fb2a914bca157&quot;,
+  &quot;elapsed_ms&quot;: 0.376,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: null
+}</pre></details></section><section id="trial-3"><h2>rename · PostgreSQL 16.2</h2><details id="e-3-0"><summary>request · baseline.old-read</summary><pre>{
+  &quot;kind&quot;: &quot;request&quot;,
+  &quot;name&quot;: &quot;baseline.old-read&quot;,
+  &quot;pid&quot;: 161,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;d05a250cfae0382c64a2ed2750d30d45b843f1555b51b834a0817c5f04526ccc&quot;,
+  &quot;elapsed_ms&quot;: 0.763,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: true
+}</pre></details><details id="e-3-1"><summary>migration · rename immediately</summary><pre>{
+  &quot;kind&quot;: &quot;migration&quot;,
+  &quot;name&quot;: &quot;rename immediately&quot;,
+  &quot;pid&quot;: 160,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;9144c9442ebecff23fc9dff57e853d9ae2f6a9e966568b23f9d752b7285eadc3&quot;,
+  &quot;elapsed_ms&quot;: 0.319,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: null
+}</pre></details><details id="e-3-2"><summary>request · mixed.old-read</summary><pre>{
+  &quot;kind&quot;: &quot;request&quot;,
+  &quot;name&quot;: &quot;mixed.old-read&quot;,
+  &quot;pid&quot;: 161,
+  &quot;sqlstate&quot;: &quot;42703&quot;,
+  &quot;digest&quot;: &quot;d05a250cfae0382c64a2ed2750d30d45b843f1555b51b834a0817c5f04526ccc&quot;,
+  &quot;elapsed_ms&quot;: 0.211,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: null
+}</pre></details><details id="e-3-3"><summary>request · mixed.new-read</summary><pre>{
+  &quot;kind&quot;: &quot;request&quot;,
+  &quot;name&quot;: &quot;mixed.new-read&quot;,
+  &quot;pid&quot;: 162,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;212ffdd8ed377a51d533c260194b07cdf2db5de946f45dafa1c9e7b0c741005d&quot;,
+  &quot;elapsed_ms&quot;: 0.387,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: true
+}</pre></details></section><section id="trial-4"><h2>expand-contract · PostgreSQL 16.2</h2><details id="e-4-0"><summary>request · baseline.old-read</summary><pre>{
+  &quot;kind&quot;: &quot;request&quot;,
+  &quot;name&quot;: &quot;baseline.old-read&quot;,
+  &quot;pid&quot;: 190,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;d05a250cfae0382c64a2ed2750d30d45b843f1555b51b834a0817c5f04526ccc&quot;,
+  &quot;elapsed_ms&quot;: 0.758,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: true
+}</pre></details><details id="e-4-1"><summary>migration · expand and backfill</summary><pre>{
+  &quot;kind&quot;: &quot;migration&quot;,
+  &quot;name&quot;: &quot;expand and backfill&quot;,
+  &quot;pid&quot;: 189,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;62e60b4003601614e9c45fe74bf1bce4a986afa5be48729b377c68a04cecf488&quot;,
+  &quot;elapsed_ms&quot;: 5.384,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: null
+}</pre></details><details id="e-4-2"><summary>request · mixed.old-read</summary><pre>{
+  &quot;kind&quot;: &quot;request&quot;,
+  &quot;name&quot;: &quot;mixed.old-read&quot;,
+  &quot;pid&quot;: 190,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;d05a250cfae0382c64a2ed2750d30d45b843f1555b51b834a0817c5f04526ccc&quot;,
+  &quot;elapsed_ms&quot;: 0.309,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: true
+}</pre></details><details id="e-4-3"><summary>request · mixed.new-read</summary><pre>{
+  &quot;kind&quot;: &quot;request&quot;,
+  &quot;name&quot;: &quot;mixed.new-read&quot;,
+  &quot;pid&quot;: 191,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;212ffdd8ed377a51d533c260194b07cdf2db5de946f45dafa1c9e7b0c741005d&quot;,
+  &quot;elapsed_ms&quot;: 0.603,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: true
+}</pre></details><details id="e-4-4"><summary>stage · old read-only client retired</summary><pre>{
+  &quot;kind&quot;: &quot;stage&quot;,
+  &quot;name&quot;: &quot;old read-only client retired&quot;
+}</pre></details><details id="e-4-5"><summary>migration · contract after retirement</summary><pre>{
+  &quot;kind&quot;: &quot;migration&quot;,
+  &quot;name&quot;: &quot;contract after retirement&quot;,
+  &quot;pid&quot;: 189,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;6ad5b8aae901ede9741b217d145ffe1086ef7599d568e046d8a407b84650d6a5&quot;,
+  &quot;elapsed_ms&quot;: 0.385,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: null
+}</pre></details><details id="e-4-6"><summary>request · new-only.read</summary><pre>{
+  &quot;kind&quot;: &quot;request&quot;,
+  &quot;name&quot;: &quot;new-only.read&quot;,
+  &quot;pid&quot;: 191,
+  &quot;sqlstate&quot;: null,
+  &quot;digest&quot;: &quot;212ffdd8ed377a51d533c260194b07cdf2db5de946f45dafa1c9e7b0c741005d&quot;,
+  &quot;elapsed_ms&quot;: 0.188,
+  &quot;budget_ms&quot;: null,
+  &quot;over_budget&quot;: false,
+  &quot;matched&quot;: true
+}</pre></details></section><h2>Run configuration</h2><pre>{
+  &quot;seed&quot;: 41,
+  &quot;fixture_sha256&quot;: &quot;65904b444f420bc03dfe045fbf183a4927218f35c542930a88c3d89a0ad9f176&quot;,
+  &quot;workload_version&quot;: &quot;builtin/1&quot;,
+  &quot;workload_sha256&quot;: &quot;48a410cd78d431c1e3167d2baefd1691b427e7894317076eb5b5b06b8d0dc6a0&quot;,
+  &quot;platform&quot;: &quot;Linux 6.18.57 x86_64&quot;,
+  &quot;python&quot;: &quot;3.12.14&quot;,
+  &quot;runner&quot;: &quot;0.1.0&quot;,
+  &quot;statement_timeout_ms&quot;: 20000,
+  &quot;observation_timeout_s&quot;: 5.0,
+  &quot;index_writer_budget_ms&quot;: 1200,
+  &quot;started_at&quot;: &quot;2026-11-22T05:24:15.875338+00:00&quot;
+}</pre></main><script>function reveal(){const e=document.getElementById(location.hash.slice(1));if(e instanceof HTMLDetailsElement)e.open=true}onhashchange=reveal;reveal()</script></html>
