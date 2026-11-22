@@ -65,14 +65,29 @@ class ReleaseTests(unittest.TestCase):
         self.run_cli(*args, ROOT/"examples/migration.sql", code=0)
         self.assertNotIn("synthetic", (self.tmp/"report.json").read_text())
         migration = self.tmp/"change.sql"
-        migration.write_text("ALTER TABLE orders RENAME COLUMN reference TO retired")
-        result = self.run_cli(*args, migration, code=1)["custom"]
+        incompatible = ROOT/"examples/incompatible.sql"
+        result = self.run_cli(*args, incompatible, code=1)["custom"]
         self.assertEqual(result["verdict"], "application_failure")
         self.assertIn("42703", [e.get("sqlstate") for e in result["events"]])
         migration.write_text("ALTER TABLE absent ADD COLUMN broken int")
         self.assertEqual(self.run_cli(*args, migration, code=1)["custom"]["verdict"], "migration_failure")
         migration.write_text("CREATE ROLE cannot_create_roles")
         self.assertEqual(self.run_cli(*args, migration, code=1)["custom"]["events"][-1]["sqlstate"], "42501")
+
+    def test_boolean_and_numeric_assertions_are_distinct(self):
+        workload = self.tmp / "types.json"
+        cases = [("TRUE", 1), ("0", False), ("FALSE", False), ("2", 2.0)]
+        workload.write_text(json.dumps({"version": 1, "requests": [
+            {"stage": "after", "client": "new", "name": f"case-{i}",
+             "sql": f"SELECT {literal}", "expect": expected}
+            for i, (literal, expected) in enumerate(cases)
+        ]}))
+        trial = self.run_cli("run", "--fixture", ROOT/"examples/fixture.sql",
+                             "--migration", ROOT/"examples/migration.sql",
+                             "--workload", workload, code=1)["custom"]
+        self.assertEqual(trial["verdict"], "application_failure")
+        self.assertEqual([e["matched"] for e in trial["events"] if e["kind"] == "request"],
+                         [False, False, True, True])
 
     def test_unavailable_observation_and_cleanup(self):
         with cluster() as (connect, admin):
