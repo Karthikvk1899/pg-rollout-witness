@@ -43,6 +43,9 @@ def index_trial(events, connect, admin, style):
         finally:
             holder.execute("ROLLBACK")
         built = build.result(timeout=5)
+        if style == "regular":
+            # Propagate a worker disconnect even if the budget timer expired first.
+            writer.result(timeout=5)
     if style == "interrupted":
         residue = catalog(events, client, "after cancellation")
         require(residue["exists"] and residue["valid"] is False, "invalid residue not established")
