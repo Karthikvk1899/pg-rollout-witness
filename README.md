@@ -1,6 +1,8 @@
 # pg-rollout-witness
 
-A migration can finish successfully while the old application is still broken. Rehearse the rollout on generated rows, inspect the affected request and see what PostgreSQL retained after cancellation.
+A command-line tool for reviewing PostgreSQL migrations during rolling deployments. Run old and new application requests on a disposable database, follow a blocked write to its blocker, and inspect the index left behind by an interrupted migration.
+
+**First visit?** [Run the demo](#try-it) · [Bring your own migration](#bring-a-migration) · [Read a verdict](#reading-a-verdict)
 
 **[Download the offline HTML report](https://github.com/Karthikvk1899/pg-rollout-witness/raw/refs/heads/main/preview/report.html)** · [Inspect the captured events](preview/report.json) · [CI](https://github.com/Karthikvk1899/pg-rollout-witness/actions/workflows/rehearse.yml)
 
@@ -40,6 +42,8 @@ uv run --locked --extra embedded pg-rollout-witness run \
   --fixture examples/fixture.sql --migration examples/migration.sql \
   --workload examples/workload.json --out out/orders
 ```
+
+To see the same workload catch a regression, rerun the command with `--migration examples/incompatible.sql --out out/orders-rename`. The rename succeeds, then the old client's insert refers to the removed column. Expect exit code 1 and SQLSTATE `42703` on `after.old.create-order`. Open the two HTML reports side by side.
 
 Copy the [fixture](examples/fixture.sql), [migration](examples/migration.sql) and [workload](examples/workload.json). The fixture is UTF-8 SQL executed once as the rehearsal role. Derive synthetic values from `current_setting('witness.seed')` (`--seed` defaults to 41). Use deterministic generators and stable ordering. The migration is sent as one SQL message. Supply a single top-level statement for commands requiring autocommit, including concurrent index construction. Multiple ordinary DDL statements in a message share PostgreSQL's implicit transaction.
 
